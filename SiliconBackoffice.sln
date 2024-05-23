@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34723.18
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SiliconBackoffice", "SiliconBackoffice\SiliconBackoffice\SiliconBackoffice.csproj", "{AD431057-8B2D-4413-9F1F-C591306C4639}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SiliconBackoffice.Client", "SiliconBackoffice\SiliconBackoffice.Client\SiliconBackoffice.Client.csproj", "{201790DB-7787-4E72-8C4D-3B2DA93439F1}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD431057-8B2D-4413-9F1F-C591306C4639}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AD431057-8B2D-4413-9F1F-C591306C4639}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AD431057-8B2D-4413-9F1F-C591306C4639}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AD431057-8B2D-4413-9F1F-C591306C4639}.Release|Any CPU.Build.0 = Release|Any CPU
+		{201790DB-7787-4E72-8C4D-3B2DA93439F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{201790DB-7787-4E72-8C4D-3B2DA93439F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{201790DB-7787-4E72-8C4D-3B2DA93439F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{201790DB-7787-4E72-8C4D-3B2DA93439F1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C050C99D-670B-4EDA-B329-5DE431E4108C}
+	EndGlobalSection
+EndGlobal

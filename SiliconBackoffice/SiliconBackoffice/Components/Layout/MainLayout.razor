@@ -1,0 +1,28 @@
+﻿@inherits LayoutComponentBase
+
+<div class="wrapper">
+    <div class="sidebar">
+        @* <NavMenu /> *@
+         <SiliconBackoffice.Components.Sections.Header />
+
+    </div>
+
+    <main>
+        <div class="top-row px-4">
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+
+    <SiliconBackoffice.Components.Sections.Footer />
+
+</div>
+
+<div id="blazor-error-ui">
+    An unhandled error has occurred.
+    <a href="" class="reload">Reload</a>
+    <a class="dismiss">🗙</a>
+</div>

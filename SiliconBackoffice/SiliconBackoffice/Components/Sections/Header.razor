@@ -1,0 +1,24 @@
+﻿<h3>Header</h3>
+<header>
+    <div class="container">
+        <a id="logo" asp-controller="Home" asp-action="Index">
+            <img src="/images/Siliconlogo.svg" alt="logotype for Silicon">
+        </a>
+        <div id="menu" class="hide">
+            <nav>
+                <a class="menu-link" asp-controller="Home" asp-action="Index" asp-fragment="overview">Overview</a>
+                <a class="menu-link" asp-controller="Home" asp-action="Index" asp-fragment="features">Features</a>
+                <a class="menu-link" asp-controller="Contact" asp-action="Index" asp-fragment="contact">Contact</a>
+
+            </nav>
+        </div>
+
+    </div>
+
+</header>
+
+
+
+@code {
+
+}
