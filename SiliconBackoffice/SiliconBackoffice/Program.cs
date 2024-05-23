@@ -6,8 +6,12 @@ using SiliconBackoffice.Components;
 using SiliconBackoffice.Components.Account;
 using SiliconBackoffice.Data;
 using SiliconBackoffice.Handlers;
+using Azure.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
+builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new VisualStudioCredential());
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -47,8 +51,8 @@ builder.Services.AddSingleton<ServiceBusHandler>(provider =>
         provider.GetRequiredService<ILogger<ServiceBusHandler>>(),
         builder.Configuration.GetConnectionString("ServiceBus"),
         builder.Configuration["ServiceBus:courseprovider"],
-        builder.Configuration["ServiceBus:BackofficeApp"],
-        builder.Configuration["ServiceBus:FrontEndApp"]
+        builder.Configuration["ServiceBus:BackofficeApp"]
+       
     ));
 
 var app = builder.Build();
