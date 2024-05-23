@@ -14,10 +14,10 @@ public class ServiceBusHandler
     private readonly ILogger<ServiceBusHandler> _logger;
 
 
-    public ServiceBusHandler(ILogger<ServiceBusHandler> logger, string connectionString, string courseprovider, string BackofficeApp)
+    public ServiceBusHandler(ILogger<ServiceBusHandler> logger, string Servicebus, string courseprovider, string BackofficeApp)
     {
         _logger = logger;
-        _client = new ServiceBusClient(connectionString);
+        _client = new ServiceBusClient(Servicebus);
         _sender = _client.CreateSender(courseprovider);
         _processorBackofficeApp = _client.CreateProcessor(courseprovider, BackofficeApp);
         

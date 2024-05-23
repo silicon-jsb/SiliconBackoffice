@@ -1,0 +1,48 @@
+﻿@if (Authors == null)
+{
+    <p>No authors.</p>
+}
+else
+{
+    <div>
+        @foreach (var author in Authors)
+        {
+            <div>
+                <label>Name: </label>
+                <InputText @bind-Value="author.Name" />
+
+                <label>Author Image: </label>
+                <InputText @bind-Value="author.AuthorImage" />
+
+                <button @onclick="() => RemoveAuthor(author)">Remove</button>
+            </div>
+        }
+    </div>
+
+    <button @onclick="AddAuthor">Add Author</button>
+}
+
+@code {
+    [Parameter]
+    public List<AuthorCreateRequest>? Authors { get; set; }
+
+    [Parameter]
+    public EventCallback<List<AuthorCreateRequest>> AuthorsChanged { get; set; }
+
+    private void AddAuthor()
+    {
+        if (Authors == null)
+        {
+            Authors = new List<AuthorCreateRequest>();
+        }
+
+        Authors.Add(new AuthorCreateRequest());
+        AuthorsChanged.InvokeAsync(Authors);
+    }
+
+    private void RemoveAuthor(AuthorCreateRequest author)
+    {
+        Authors?.Remove(author);
+        AuthorsChanged.InvokeAsync(Authors);
+    }
+}

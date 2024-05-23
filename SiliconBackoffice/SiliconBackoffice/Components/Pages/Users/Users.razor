@@ -1,0 +1,37 @@
+﻿@page "/users"
+@using SiliconBackoffice.Data
+@inject HttpClient Http
+
+@attribute [StreamRendering]
+
+<PageTitle>Users</PageTitle>
+
+<h1>Users</h1>
+
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+   
+            @foreach (var user in users)
+            {
+                <div class="mb-3">@user.FirstName @user.LastName</div>
+            }
+    
+}
+
+@code {
+    private ApplicationUser[]? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+
+        users = await Http.GetFromJsonAsync<ApplicationUser[]>("http://localhost:7117/api/GetUsers");
+
+    }
+
+  
+}

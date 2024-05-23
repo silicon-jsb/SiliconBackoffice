@@ -1,25 +1,27 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using SiliconBackoffice.Client.Pages;
 using SiliconBackoffice.Components;
 using SiliconBackoffice.Components.Account;
 using SiliconBackoffice.Data;
 using SiliconBackoffice.Handlers;
 using Azure.Identity;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultEndpoint = new Uri(Environment.GetEnvironmentVariable("VaultUri")!);
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new VisualStudioCredential());
+var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]);
+builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddHttpClient();
+
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddHttpClient();
 builder.Services.AddScoped<IdentityUserAccessor>();
 builder.Services.AddScoped<IdentityRedirectManager>();
 builder.Services.AddScoped<AuthenticationStateProvider, PersistingRevalidatingAuthenticationStateProvider>();
@@ -31,7 +33,7 @@ builder.Services.AddAuthentication(options =>
 })
     .AddIdentityCookies();
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration["DefaultConnection"];
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -46,12 +48,16 @@ builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSe
 builder.Services.AddSingleton<ILogger<ServiceBusHandler>>(provider =>
     provider.GetRequiredService<ILoggerFactory>().CreateLogger<ServiceBusHandler>());
 
+
+
+builder.Services.AddScoped<CourseService>();
+
 builder.Services.AddSingleton<ServiceBusHandler>(provider =>
     new ServiceBusHandler(
         provider.GetRequiredService<ILogger<ServiceBusHandler>>(),
-        builder.Configuration.GetConnectionString("ServiceBus"),
-        builder.Configuration["ServiceBus:courseprovider"],
-        builder.Configuration["ServiceBus:BackofficeApp"]
+        builder.Configuration["Servicebus"],
+        builder.Configuration["courseprovider"],
+        builder.Configuration["BackofficeApp"]
        
     ));
 
