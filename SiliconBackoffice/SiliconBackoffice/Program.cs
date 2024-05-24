@@ -6,6 +6,7 @@ using SiliconBackoffice.Components.Account;
 using SiliconBackoffice.Data;
 using SiliconBackoffice.Handlers;
 using Azure.Identity;
+using SiliconBackoffice.Data.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -51,6 +52,8 @@ builder.Services.AddSingleton<ILogger<ServiceBusHandler>>(provider =>
 
 
 builder.Services.AddScoped<CourseService>();
+builder.Services.AddScoped<GraphQLService>();
+
 
 builder.Services.AddSingleton<ServiceBusHandler>(provider =>
     new ServiceBusHandler(

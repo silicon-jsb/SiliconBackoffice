@@ -9,6 +9,11 @@
   </PropertyGroup>
 
 
+	<ItemGroup>
+	  <Content Remove="Components\CoursesSections\Coursespage.razor" />
+	</ItemGroup>
+
+
   <ItemGroup>
     <ProjectReference Include="..\SiliconBackoffice.Client\SiliconBackoffice.Client.csproj" />
     <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.3.1" />
@@ -26,5 +31,22 @@
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\CoursesSections\Coursespage.razor" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Components\CoursesSections\Coursespage.razor" />
+  </ItemGroup>
+
+
+	<ItemGroup>
+		<None Remove="Components\CoursesSections\Coursespage.razor" />
+		<Content Include="Components\CoursesSections\Coursespage.razor" />
+	</ItemGroup>
+
 
 </Project>
