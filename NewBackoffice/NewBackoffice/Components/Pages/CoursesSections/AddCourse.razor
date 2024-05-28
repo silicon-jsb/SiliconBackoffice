@@ -1,0 +1,114 @@
+﻿@page "/courses/add-course"
+
+<PageTitle>Add a course</PageTitle>
+
+<h3>Add Course</h3>
+@* 
+<EditForm model="@courseCreateRequest" OnValidSubmit="SubmitForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="input-group">
+        <label for="title">Title: </label>
+        <InputText id="title" @bind-Value="courseCreateRequest.Title" />
+    </div>
+
+    <div class="input-group">
+        <label for="ingress">Ingress: </label>
+        <InputTextArea id="ingress" @bind-Value="courseCreateRequest.Ingress" />
+    </div>
+
+    <div class="input-group">
+        <label for="starRating">Star Rating: </label>
+        <InputNumber id="starRating" @bind-Value="courseCreateRequest.StarRating" />
+    </div>
+
+    <div class="input-group">
+        <label for="reviews">Reviews: </label>
+        <InputText id="reviews" @bind-Value="courseCreateRequest.Reviews" />
+    </div>
+
+    <div class="input-group">
+        <label for="likes">Likes: </label>
+        <InputText id="likes" @bind-Value="courseCreateRequest.Likes" />
+    </div>
+
+    <div class="input-group">
+        <label for="likesInPercent">Likes in Percent: </label>
+        <InputText id="likesInPercent" @bind-Value="courseCreateRequest.LikesInPercent" />
+    </div>
+
+    <div class="input-group">
+        <label for="hours">Hours: </label>
+        <InputText id="hours" @bind-Value="courseCreateRequest.Hours" />
+    </div>
+
+    <!-- ... -->
+    <!-- Prices Section -->
+    <div class="input-group">
+        <h4>Prices</h4>
+
+        <label for="currency">Currency: </label>
+        <InputText id="currency" @bind-Value="courseCreateRequest.Prices.Currency" />
+
+        <label for="price">Price: </label>
+        <InputNumber id="price" @bind-Value="courseCreateRequest.Prices.Price" />
+
+        <label for="discount">Discount: </label>
+        <InputNumber id="discount" @bind-Value="courseCreateRequest.Prices.Discount" />
+    </div>
+
+    <!-- Content Section -->
+    <div class="input-group">
+        <h4>Content</h4>
+
+        <label for="description">Description: </label>
+        <InputTextArea id="description" @bind-Value="courseCreateRequest.Content.Description" />
+
+        <!-- You'll need to handle Includes as a string and split it into an array -->
+        <label for="includes">Includes: </label>
+        <InputText id="includes" @bind-Value="includesAsString" />
+    </div>
+
+    <!-- Authors Section -->
+   <div class="input-group">
+    <h4>Authors</h4>
+
+    <AuthorList Authors="courseCreateRequest.Authors" AuthorsChanged="UpdateAuthors" />
+</div>
+    <!-- ... -->
+
+    <button class="btn-theme" type="submit">Add course</button>
+</EditForm>
+
+
+@code {
+    private CourseCreateRequest courseCreateRequest = new CourseCreateRequest();
+
+    private void SubmitForm()
+    {
+        // Implement your form submission logic here
+    }
+
+    private void HandleFileChange(InputFileChangeEventArgs e)
+    {
+        var imageFile = e.File;
+        // Implement your file handling logic here
+    }
+
+    private void HandleAuthorImageChange(InputFileChangeEventArgs e)
+    {
+        var imageFile = e.File;
+        // Implement your file handling logic here
+    }
+    private void UpdateAuthors(List<CourseCreateRequest.AuthorCreateRequest> authors)
+    {
+        courseCreateRequest.Authors = authors;
+    }
+    string includesAsString
+    {
+        get => string.Join(", ", courseCreateRequest.Content.Includes ?? new string[0]);
+        set => courseCreateRequest.Content.Includes = value.Split(',').Select(s => s.Trim()).ToArray();
+    }
+}
+} *@

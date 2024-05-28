@@ -1,0 +1,145 @@
+﻿@using System.Net.Http
+@inject IConfiguration Configuration
+
+
+@page "/users"
+@attribute [StreamRendering]
+
+<PageTitle>All users</PageTitle>
+
+<h1>All users</h1>
+
+@if (users == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Firstname</th>
+                <th>Lastname</th>
+                <th>Email</th>
+                <th>City</th>
+                <th>Phone</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var user in users)
+            {
+                <tr>
+                    <td>@user.Id</td>
+                    <td>@user.FirstName</td>
+                    <td>@user.LastName</td>
+                    <td>@user.Email</td>
+                    <td>@user.City</td>
+                    <td>@user.Phone</td>
+                    <td><button @onclick="() => DeleteUser(user.Id)">Delete</button></td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger">@ErrorMessage</p>
+}
+
+
+@code {
+    [Inject]
+    private HttpClient HttpClient { get; set; }
+    private IJSRuntime JSRuntime { get; set; }
+
+    private string? ErrorMessage { get; set; }
+
+    private User[]? users;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        try
+        {
+            var functionKey = Configuration["AzureFunctionKeyUsers"];
+            var response = await HttpClient.GetAsync($"https://userprovider-newsilicon-jsb.azurewebsites.net/api/users?code={functionKey}");
+            if (response.IsSuccessStatusCode)
+            {
+                users = await response.Content.ReadFromJsonAsync<User[]>();
+            }
+            else
+            {
+                ErrorMessage = "Failed to fetch users. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while fetching users. " + ex.Message;
+        }
+    }
+
+
+
+
+    private async Task DeleteUser(string userId)
+    {
+        try
+        {
+            var functionKey = Configuration["AzureFunctionKeyDeleteUser"];
+            Console.WriteLine("Before delete request");
+            var response = await HttpClient.DeleteAsync($"https://userprovider-newsilicon-jsb.azurewebsites.net/api/users/{Uri.EscapeDataString(userId)}?code={functionKey}");
+            Console.WriteLine("After delete request");
+            Console.WriteLine(response);
+            
+       
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadUsers();
+            }
+            else
+            {
+                ErrorMessage = "Failed to delete user. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while deleting the user. " + ex.Message;
+        }
+    }
+
+    public async Task ConfirmAndDeleteUser(string userId)
+    {
+        Console.WriteLine("Before confirm");
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete user {userId}?"))
+        {
+            Console.WriteLine("After confirm - OK");
+            await DeleteUser(userId);
+        }
+        else
+        {
+            Console.WriteLine("After confirm - Cancel");
+        }
+    }
+
+
+
+    private class User
+    {
+        public string Id { get; set; } = null!;
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string Email { get; set; } = null!;
+        public string? City { get; set; }
+        public string? Phone { get; set; }
+    }
+}
+
