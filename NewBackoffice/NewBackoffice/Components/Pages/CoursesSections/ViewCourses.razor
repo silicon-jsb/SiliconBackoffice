@@ -1,0 +1,50 @@
+﻿@page "/courses/view-courses"
+@* @inject GraphQLService GraphQLService *@
+
+<h3>All courses</h3>
+
+@* 
+@if (courses == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <ul>
+        @foreach (var course in courses)
+        {
+            <li>
+                @course.Title
+                <button @onclick="() => UpdateCourse(course.Id)">Update</button>
+                <button @onclick="() => DeleteCourse(course.Id)">Delete</button>
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<Course> courses;
+
+    protected override async Task OnInitializedAsync()
+    {
+        courses = await GraphQLService.GetCoursesAsync();
+    }
+    private async Task UpdateCourse(string courseId)
+    {
+        // Navigate to the update course page
+        NavigationManager.NavigateTo($"/update-course/{courseId}");
+    }
+
+    private async Task DeleteCourse(string courseId)
+    {
+        // Call the GraphQLService to delete the course
+        var success = await GraphQLService.DeleteCourseAsync(courseId);
+        if (success)
+        {
+            // Refresh the course list
+            courses = await GraphQLService.GetCoursesAsync();
+        }
+    }
+}
+
+ *@
