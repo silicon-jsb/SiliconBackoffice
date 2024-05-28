@@ -17,7 +17,6 @@
       "applicationUrl": "http://localhost:5246",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "VaultUri": "https://siliconbackofficevault.vault.azure.net/",
         "AZURE_USERNAME": "micaela.nilsson1@learnet.se"
       }
     },
@@ -29,7 +28,6 @@
       "applicationUrl": "https://localhost:7284;http://localhost:5246",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "VaultUri": "https://siliconbackofficevault.vault.azure.net/",
         "AZURE_USERNAME": "micaela.nilsson1@learnet.se"
       }
     },
@@ -39,7 +37,6 @@
       "inspectUri": "{wsProtocol}://{url.hostname}:{url.port}/_framework/debug/ws-proxy?browser={browserInspectUri}",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "VaultUri": "https://siliconbackofficevault.vault.azure.net/",
         "AZURE_USERNAME": "micaela.nilsson1@learnet.se"
       }
     }

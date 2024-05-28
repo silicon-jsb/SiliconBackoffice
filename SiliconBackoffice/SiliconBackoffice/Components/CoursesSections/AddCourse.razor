@@ -1,4 +1,7 @@
 ﻿@page "/courses/add-course"
+@using Newtonsoft.Json
+@using SiliconBackoffice.Handlers
+@inject ServiceBusHandler ServiceBusHandler
 
 <PageTitle>Add a course</PageTitle>
 
@@ -43,7 +46,7 @@
         <InputText id="hours" @bind-Value="courseCreateRequest.Hours" />
     </div>
 
-    <!-- ... -->
+    
     <!-- Prices Section -->
     <div class="input-group">
         <h4>Prices</h4>
@@ -65,7 +68,7 @@
         <label for="description">Description: </label>
         <InputTextArea id="description" @bind-Value="courseCreateRequest.Content.Description" />
 
-        <!-- You'll need to handle Includes as a string and split it into an array -->
+        
         <label for="includes">Includes: </label>
         <InputText id="includes" @bind-Value="includesAsString" />
     </div>
@@ -83,23 +86,54 @@
 
 
 @code {
-    private CourseCreateRequest courseCreateRequest = new CourseCreateRequest();
+    private string message;
 
-    private void SubmitForm()
+    private CourseCreateRequest courseCreateRequest = new CourseCreateRequest
+        {
+            Prices = new CourseCreateRequest.PricesCreateRequest(),
+            Content = new CourseCreateRequest.ContentCreateRequest
+            {
+
+            ProgramDetails = new List<CourseCreateRequest.ProgramDetailItemCreateRequest>()
+            },
+
+            Authors = new List<CourseCreateRequest.AuthorCreateRequest>(),
+
+
+        };
+
+
+
+
+    public async Task SubmitForm()
     {
-        // Implement your form submission logic here
+        if (courseCreateRequest != null)
+        {
+            var json = JsonConvert.SerializeObject(courseCreateRequest);
+            var result = await ServiceBusHandler.PublishAsync(json);
+
+
+            if (result.StatusCode == 200)
+            {
+                message = "Course was successfully added.";
+            }
+            else
+            {
+                message = "Failed to add the course. Please try again.";
+            }
+        }
     }
 
     private void HandleFileChange(InputFileChangeEventArgs e)
     {
         var imageFile = e.File;
-        // Implement your file handling logic here
+        
     }
 
     private void HandleAuthorImageChange(InputFileChangeEventArgs e)
     {
         var imageFile = e.File;
-        // Implement your file handling logic here
+        
     }
     private void UpdateAuthors(List<CourseCreateRequest.AuthorCreateRequest> authors)
     {
@@ -110,5 +144,4 @@
         get => string.Join(", ", courseCreateRequest.Content.Includes ?? new string[0]);
         set => courseCreateRequest.Content.Includes = value.Split(',').Select(s => s.Trim()).ToArray();
     }
-}
 }

@@ -11,9 +11,6 @@ using SiliconBackoffice.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]);
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
-
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -46,23 +43,15 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => options.SignIn.Requ
 
 builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
-builder.Services.AddSingleton<ILogger<ServiceBusHandler>>(provider =>
-    provider.GetRequiredService<ILoggerFactory>().CreateLogger<ServiceBusHandler>());
+
 
 
 
 builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<GraphQLService>();
 
-
-builder.Services.AddSingleton<ServiceBusHandler>(provider =>
-    new ServiceBusHandler(
-        provider.GetRequiredService<ILogger<ServiceBusHandler>>(),
-        builder.Configuration["Servicebus"],
-        builder.Configuration["courseprovider"],
-        builder.Configuration["BackofficeApp"]
-       
-    ));
+builder.Services.AddSingleton<ServiceBusHandler>();
+builder.Services.AddHostedService(x => x.GetRequiredService<ServiceBusHandler>());
 
 var app = builder.Build();
 
@@ -92,14 +81,6 @@ app.MapRazorComponents<App>()
 // Add additional endpoints required by the Identity /Account Razor components.
 app.MapAdditionalIdentityEndpoints();
 
-// Create a new scope
-using (var scope = app.Services.CreateScope())
-{
-    // Get the instance of ServiceBusHandler from the service provider
-    var serviceBusHandler = scope.ServiceProvider.GetRequiredService<ServiceBusHandler>();
 
-    // Start listening for messages
-    serviceBusHandler.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
-}
 
 app.Run();
