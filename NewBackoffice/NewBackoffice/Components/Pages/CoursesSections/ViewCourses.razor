@@ -1,50 +1,242 @@
 ﻿@page "/courses/view-courses"
-@* @inject GraphQLService GraphQLService *@
+@using NewBackoffice.Data.GraphQL
+@inject HttpClient HttpClient
+
 
 <h3>All courses</h3>
 
-@* 
+
 @if (courses == null)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
-    <ul>
-        @foreach (var course in courses)
-        {
-            <li>
-                @course.Title
-                <button @onclick="() => UpdateCourse(course.Id)">Update</button>
-                <button @onclick="() => DeleteCourse(course.Id)">Delete</button>
-            </li>
-        }
-    </ul>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>isBestSeller</th>
+                <th>isDigital</th>
+                <th>categories</th>
+                <th>ingress</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var course in courses)
+            {
+                <tr>
+                    <td>@course.Id</td>
+                    <td>@course.Title</td>
+                    <td>@course.IsBestseller</td>
+                    <td>@course.IsDigital</td>
+                    <td>@course.Categories</td>
+                    <td>@course.Ingress</td>
+                    <td><button @onclick="() => DeleteCourse(course.Id)">Delete</button></td>
+
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger">@ErrorMessage</p>
 }
 
 @code {
-    private List<Course> courses;
+    
+   
+    private List<Course>? courses;
+
+    private string? ErrorMessage { get; set; }
+
+    
 
     protected override async Task OnInitializedAsync()
+          
     {
-        courses = await GraphQLService.GetCoursesAsync();
-    }
-    private async Task UpdateCourse(string courseId)
-    {
-        // Navigate to the update course page
-        NavigationManager.NavigateTo($"/update-course/{courseId}");
+        var query = new GraphQLQuery
+            {
+                Query = @"
+        {
+            getCourses {
+                id
+                imageUri
+                imageHeaderUri
+                isBestseller
+                isDigital
+                categories
+                title
+                ingress
+                starRating
+                reviews
+                likes
+                likesInPercent
+                hours
+                authors {
+                    name
+                    authorImage
+                }
+                prices {
+                    currency
+                    price
+                    discount
+                }
+                content {
+                    description
+                    includes
+                    programDetails {
+                        id
+                        title
+                        description
+                    }
+                }
+            }
+        }"
+            };
+
+        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", query);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();
+            courses = result?.Data.GetProperty("getCourses").EnumerateArray()
+                .Select(course => new Course
+                    {
+                        Id = course.GetProperty("id").GetString(),
+                        ImageUri = course.GetProperty("imageUri").GetString(),
+                        ImageHeaderUri = course.GetProperty("imageHeaderUri").GetString(),
+                        IsBestseller = course.GetProperty("isBestseller").GetBoolean(),
+                        IsDigital = course.GetProperty("isDigital").GetBoolean(),
+                        Categories = course.GetProperty("categories").EnumerateArray().Select(x => x.GetString()).ToArray(),
+                        Title = course.GetProperty("title").GetString(),
+                        Ingress = course.GetProperty("ingress").GetString(),
+                        StarRating = course.GetProperty("starRating").GetDecimal(),
+                        Reviews = course.GetProperty("reviews").GetString(),
+                        Likes = course.GetProperty("likes").GetString(),
+                        LikesInPercent = course.GetProperty("likesInPercent").GetString(),
+                        Hours = course.GetProperty("hours").GetString(),
+                        Authors = course.GetProperty("authors").EnumerateArray().Select(a => new Author
+                        {
+                            Name = a.GetProperty("name").GetString(),
+                            AuthorImage = a.GetProperty("authorImage").GetString()
+                        }).ToList(),
+                        Prices = new Prices
+                        {
+                            Currency = course.GetProperty("prices").GetProperty("currency").GetString(),
+                            Price = course.GetProperty("prices").GetProperty("price").GetDecimal(),
+                            Discount = course.GetProperty("prices").GetProperty("discount").GetDecimal()
+                        },
+                        Content = new Content
+                        {
+                            Description = course.GetProperty("content").GetProperty("description").GetString(),
+                            Includes = course.GetProperty("content").GetProperty("includes").EnumerateArray().Select(x => x.GetString()).ToArray(),
+                            ProgramDetails = course.GetProperty("content").GetProperty("programDetails").EnumerateArray().Select(pd => new ProgramDetailItem
+                            {
+                                Id = pd.GetProperty("id").GetInt32(),
+                                Title = pd.GetProperty("title").GetString(),
+                                Description = pd.GetProperty("description").GetString()
+                            }).ToList()
+                        }
+                    })
+            .ToList();
+        }
+        else
+        {
+            ErrorMessage = "Failed to fetch courses. Please try again later.";
+        }
     }
 
-    private async Task DeleteCourse(string courseId)
+    private async Task DeleteCourse(string id)
     {
-        // Call the GraphQLService to delete the course
-        var success = await GraphQLService.DeleteCourseAsync(courseId);
-        if (success)
+        var mutation = new GraphQLQuery
+            {
+                Query = @"
+        mutation DeleteCourse($id: ID!) {
+            deleteCourse(id: $id) {
+                id
+            }
+        }",
+                Variables = new { id = id }
+            };
+
+        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        if (response.IsSuccessStatusCode)
         {
-            // Refresh the course list
-            courses = await GraphQLService.GetCoursesAsync();
+            // If the deletion was successful, remove the course from the local list
+            courses = courses.Where(course => course.Id != id).ToList();
         }
+        else
+        {
+            ErrorMessage = "Failed to delete course. Please try again later.";
+        }
+    }
+
+    public class Course
+    {
+        public string Id { get; set; } = null!;
+        public string? ImageUri { get; set; }
+        public string? ImageHeaderUri { get; set; }
+        public bool IsBestseller { get; set; }
+        public bool IsDigital { get; set; }
+        public string[]? Categories { get; set; }
+        public string? Title { get; set; }
+        public string? Ingress { get; set; }
+        public decimal StarRating { get; set; }
+        public string? Reviews { get; set; }
+        public string? Likes { get; set; }
+        public string? LikesInPercent { get; set; }
+        public string? Hours { get; set; }
+
+        public virtual List<Author>? Authors { get; set; }
+        public virtual Prices? Prices { get; set; }
+        public virtual Content? Content { get; set; }
+    }
+    public class Content
+    {
+        public string? Description { get; set; }
+        public string[]? Includes { get; set; }
+        public virtual List<ProgramDetailItem>? ProgramDetails { get; set; }
+
+    }
+
+    public class Author
+    {
+        public string? Name { get; set; }
+        public string? AuthorImage { get; set; }
+    }
+
+    public class Prices
+    {
+        public string? Currency { get; set; }
+        public decimal Price { get; set; }
+        public decimal Discount { get; set; }
+
+    }
+    public class ProgramDetailItem
+    {
+        public int Id { get; set; }
+        public string? Title { get; set; }
+        public string? Description { get; set; }
     }
 }
 
- *@
+   
+
+
+
+
+   
+        
+
+
+
+    
+
+
+
+
+

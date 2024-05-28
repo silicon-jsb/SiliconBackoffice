@@ -48,4 +48,9 @@
 	</ItemGroup>
 
 
+	<ItemGroup>
+	  <Folder Include="GraphQL\" />
+	</ItemGroup>
+
+
 </Project>
