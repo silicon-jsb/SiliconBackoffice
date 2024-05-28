@@ -14,18 +14,18 @@ public class ServiceBusHandler
     private readonly ILogger<ServiceBusHandler> _logger;
 
 
-    public ServiceBusHandler(ILogger<ServiceBusHandler> logger, string Servicebus, string courseprovider, string BackofficeApp)
-    {
-        _logger = logger;
-        _client = new ServiceBusClient(Servicebus);
-        _sender = _client.CreateSender(courseprovider);
-        _processorBackofficeApp = _client.CreateProcessor(courseprovider, BackofficeApp);
+    //public ServiceBusHandler(ILogger<ServiceBusHandler> logger, string Servicebus, string courseprovider, string BackofficeApp)
+    //{
+    //    _logger = logger;
+    //    _client = new ServiceBusClient(Servicebus);
+    //    _sender = _client.CreateSender(courseprovider);
+    //    _processorBackofficeApp = _client.CreateProcessor(courseprovider, BackofficeApp);
         
-        _processorBackofficeApp.ProcessMessageAsync += MessageHandler;
-        _processorBackofficeApp.ProcessErrorAsync += ErrorHandler;
+    //    _processorBackofficeApp.ProcessMessageAsync += MessageHandler;
+    //    _processorBackofficeApp.ProcessErrorAsync += ErrorHandler;
 
 
-    }
+    //}
   
 
   
