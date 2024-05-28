@@ -1,0 +1,88 @@
+﻿@using System.Net.Http
+@inject IConfiguration Configuration
+
+@page "/orders"
+@attribute [StreamRendering]
+
+<PageTitle>Orders</PageTitle>
+
+<h1>Orders</h1>
+
+@if (orders == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    //maybe not all of these but thats for design
+    <table class="table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>UserId</th>
+                <th>Firstname</th>
+                <th>Lastname</th>
+                <th>Course ID</th>
+                <th>Course</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var order in orders)
+            {
+                <tr>
+                    <td>@order.Id</td>
+                    <td>@order.UserId</td>
+                    <td>@order.FirstName</td>
+                    <td>@order.LastName</td>
+                    <td>@order.CourseId</td>
+                    <td>@order.CourseTitle</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger">@ErrorMessage</p>
+}
+
+@code {
+    [Inject]
+    private HttpClient? HttpClient { get; set; }
+
+    private string? ErrorMessage { get; set; }
+
+    private Order[]? orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var functionKey = Configuration["AzureFunctionKeyOrders"];
+            var response = await HttpClient.GetAsync($"https://orderprovider-newsilicon-jsb.azurewebsites.net/api/orders/?code={functionKey}");
+            if (response.IsSuccessStatusCode)
+            {
+                orders = await response.Content.ReadFromJsonAsync<Order[]>();
+            }
+            else
+            {
+                ErrorMessage = "Failed to fetch saved courses. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while fetching saved courses. " + ex.Message;
+        }
+    }
+
+    private class Order
+    {
+        public int Id { get; set; }
+        public string FirstName { get; set; } = null!;
+        public string LastName { get; set; } = null!;
+        public string UserId { get; set; } = null!;
+        public int CourseId { get; set; }
+        public string CourseTitle { get; set; } = null!;
+    }
+}

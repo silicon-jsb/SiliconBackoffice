@@ -11,8 +11,8 @@ using SiliconBackoffice.Data.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]);
-builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
+//var keyVaultEndpoint = new Uri(builder.Configuration["VaultUri"]);
+//builder.Configuration.AddAzureKeyVault(keyVaultEndpoint, new DefaultAzureCredential());
 
 
 // Add services to the container.
@@ -55,14 +55,14 @@ builder.Services.AddScoped<CourseService>();
 builder.Services.AddScoped<GraphQLService>();
 
 
-builder.Services.AddSingleton<ServiceBusHandler>(provider =>
-    new ServiceBusHandler(
-        provider.GetRequiredService<ILogger<ServiceBusHandler>>(),
-        builder.Configuration["Servicebus"],
-        builder.Configuration["courseprovider"],
-        builder.Configuration["BackofficeApp"]
+//builder.Services.AddSingleton<ServiceBusHandler>(provider =>
+//    new ServiceBusHandler(
+//        provider.GetRequiredService<ILogger<ServiceBusHandler>>(),
+//        builder.Configuration["Servicebus"],
+//        builder.Configuration["courseprovider"],
+//        builder.Configuration["BackofficeApp"]
        
-    ));
+//    ));
 
 var app = builder.Build();
 
@@ -96,10 +96,10 @@ app.MapAdditionalIdentityEndpoints();
 using (var scope = app.Services.CreateScope())
 {
     // Get the instance of ServiceBusHandler from the service provider
-    var serviceBusHandler = scope.ServiceProvider.GetRequiredService<ServiceBusHandler>();
+    //var serviceBusHandler = scope.ServiceProvider.GetRequiredService<ServiceBusHandler>();
 
     // Start listening for messages
-    serviceBusHandler.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
+    //serviceBusHandler.StartAsync(CancellationToken.None).GetAwaiter().GetResult();
 }
 
 app.Run();
