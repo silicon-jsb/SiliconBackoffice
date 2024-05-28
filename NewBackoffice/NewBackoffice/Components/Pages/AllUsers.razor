@@ -1,6 +1,7 @@
 ﻿@using System.Net.Http
 @inject IConfiguration Configuration
 
+
 @page "/users"
 @attribute [StreamRendering]
 
@@ -23,6 +24,7 @@ else
                 <th>Email</th>
                 <th>City</th>
                 <th>Phone</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody>
@@ -35,6 +37,8 @@ else
                     <td>@user.Email</td>
                     <td>@user.City</td>
                     <td>@user.Phone</td>
+                    <td><button @onclick="() => DeleteUser(user.Id)">Delete</button></td>
+
                 </tr>
             }
         </tbody>
@@ -49,13 +53,19 @@ else
 
 @code {
     [Inject]
-    private HttpClient? HttpClient { get; set; }
+    private HttpClient HttpClient { get; set; }
+    private IJSRuntime JSRuntime { get; set; }
 
     private string? ErrorMessage { get; set; }
 
     private User[]? users;
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
     {
         try
         {
@@ -75,6 +85,52 @@ else
             ErrorMessage = "An error occurred while fetching users. " + ex.Message;
         }
     }
+
+
+
+
+    private async Task DeleteUser(string userId)
+    {
+        try
+        {
+            var functionKey = Configuration["AzureFunctionKeyDeleteUser"];
+            Console.WriteLine("Before delete request");
+            var response = await HttpClient.DeleteAsync($"https://userprovider-newsilicon-jsb.azurewebsites.net/api/users/{Uri.EscapeDataString(userId)}?code={functionKey}");
+            Console.WriteLine("After delete request");
+            Console.WriteLine(response);
+            
+       
+
+            if (response.IsSuccessStatusCode)
+            {
+                await LoadUsers();
+            }
+            else
+            {
+                ErrorMessage = "Failed to delete user. Please try again later.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while deleting the user. " + ex.Message;
+        }
+    }
+
+    public async Task ConfirmAndDeleteUser(string userId)
+    {
+        Console.WriteLine("Before confirm");
+        if (await JSRuntime.InvokeAsync<bool>("confirm", $"Are you sure you want to delete user {userId}?"))
+        {
+            Console.WriteLine("After confirm - OK");
+            await DeleteUser(userId);
+        }
+        else
+        {
+            Console.WriteLine("After confirm - Cancel");
+        }
+    }
+
+
 
     private class User
     {
