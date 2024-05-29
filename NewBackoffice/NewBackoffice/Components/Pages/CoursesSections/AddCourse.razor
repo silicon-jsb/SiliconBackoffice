@@ -1,10 +1,14 @@
 ﻿@page "/courses/add-course"
+@using NewBackoffice.Data.GraphQL
+@using System.Text.Json
+@inject HttpClient HttpClient
+@rendermode InteractiveServer
 
 <PageTitle>Add a course</PageTitle>
 
 <h3>Add Course</h3>
-@* 
-<EditForm model="@courseCreateRequest" OnValidSubmit="SubmitForm">
+
+<EditForm Model="@courseCreateRequest" OnValidSubmit="SubmitForm" FormName="addCourseForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
 
@@ -19,13 +23,38 @@
     </div>
 
     <div class="input-group">
+        <label for="imageUri">Image URI: </label>
+        <InputText id="imageUri" @bind-Value="courseCreateRequest.ImageUri" />
+    </div>
+
+    <div class="input-group">
+        <label for="imageHeaderUri">Image Header URI: </label>
+        <InputText id="imageHeaderUri" @bind-Value="courseCreateRequest.ImageHeaderUri" />
+    </div>
+
+    <div class="input-group">
+        <label for="isBestseller">Is Bestseller: </label>
+        <InputCheckbox id="isBestseller" @bind-Value="courseCreateRequest.IsBestseller" />
+    </div>
+
+    <div class="input-group">
+        <label for="isDigital">Is Digital: </label>
+        <InputCheckbox id="isDigital" @bind-Value="courseCreateRequest.IsDigital" />
+    </div>
+
+    <div class="input-group">
+        <label for="categories">Categories: </label>
+        <InputTextArea id="categories" @bind-Value="categoriesString" />
+    </div>
+
+    <div class="input-group">
         <label for="starRating">Star Rating: </label>
         <InputNumber id="starRating" @bind-Value="courseCreateRequest.StarRating" />
     </div>
 
     <div class="input-group">
         <label for="reviews">Reviews: </label>
-        <InputText id="reviews" @bind-Value="courseCreateRequest.Reviews" />
+        <InputTextArea id="reviews" @bind-Value="courseCreateRequest.Reviews" />
     </div>
 
     <div class="input-group">
@@ -43,72 +72,187 @@
         <InputText id="hours" @bind-Value="courseCreateRequest.Hours" />
     </div>
 
-    <!-- ... -->
-    <!-- Prices Section -->
     <div class="input-group">
-        <h4>Prices</h4>
+        <label for="name">Author Names: </label>
+        <InputTextArea id="name" @bind-Value="authorsString" />
+    </div>
+    <div class="input-group">
+        <label for="authorImages">Author Images: </label>
+        <InputTextArea id="authorImages" @bind-Value="authorImagesString" />
+    </div>
 
+    <h4>Prices</h4>
+    <div class="input-group">
         <label for="currency">Currency: </label>
         <InputText id="currency" @bind-Value="courseCreateRequest.Prices.Currency" />
+    </div>
 
+    <div class="input-group">
         <label for="price">Price: </label>
         <InputNumber id="price" @bind-Value="courseCreateRequest.Prices.Price" />
+    </div>
 
+    <div class="input-group">
         <label for="discount">Discount: </label>
         <InputNumber id="discount" @bind-Value="courseCreateRequest.Prices.Discount" />
     </div>
 
-    <!-- Content Section -->
+    <h4>Content</h4>
     <div class="input-group">
-        <h4>Content</h4>
-
         <label for="description">Description: </label>
         <InputTextArea id="description" @bind-Value="courseCreateRequest.Content.Description" />
-
-        <!-- You'll need to handle Includes as a string and split it into an array -->
-        <label for="includes">Includes: </label>
-        <InputText id="includes" @bind-Value="includesAsString" />
     </div>
 
-    <!-- Authors Section -->
-   <div class="input-group">
-    <h4>Authors</h4>
+    <div class="input-group">
+        <label for="includes">Includes: </label>
+        <InputText id="includes" @bind-Value="courseCreateRequest.Content.Includes" />
+    </div>
 
-    <AuthorList Authors="courseCreateRequest.Authors" AuthorsChanged="UpdateAuthors" />
-</div>
-    <!-- ... -->
+    @foreach (var detail in courseCreateRequest.Content.ProgramDetails)
+    {
+        <div class="input-group">
+            <label for="programDetailTitle">Program Detail Title: </label>
+            <InputText @bind-Value="detail.Title" />
+        </div>
 
-    <button class="btn-theme" type="submit">Add course</button>
+        <div class="input-group">
+            <label for="programDetailDescription">Program Detail Description: </label>
+            <InputTextArea @bind-Value="detail.Description" />
+        </div>
+    }
+
+    <button type="submit">Add Course</button>
 </EditForm>
 
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <p class="text-danger">@ErrorMessage</p>
+}
 
 @code {
     private CourseCreateRequest courseCreateRequest = new CourseCreateRequest();
+    private string? ErrorMessage { get; set; }
+    private string categoriesString = "";
+    private string authorsString = "";
+    private string authorImagesString = "";
 
-    private void SubmitForm()
+
+
+
+    private async Task SubmitForm()
     {
-        // Implement your form submission logic here
+
+        courseCreateRequest.Categories = categoriesString.Split(',').Select(s => s.Trim()).ToList();
+        courseCreateRequest.Authors = authorsString.Split(',').Select(s => new CourseCreateRequest.AuthorCreateRequest { Name = s.Trim() }).ToList();
+        var authorNames = authorsString.Split(',').Select(s => s.Trim()).ToList();
+        var authorImages = authorImagesString.Split(',').Select(s => s.Trim()).ToList();
+        courseCreateRequest.Authors = authorNames.Zip(authorImages, (name, image) => new CourseCreateRequest.AuthorCreateRequest { Name = name, AuthorImage = image }).ToList();
+
+        var mutation = new GraphQLQuery
+            {
+                Query = @"
+            mutation CreateCourse($input: CourseCreateRequestInput!) {
+                createCourse(input: $input) {
+                    imageUri
+                    imageHeaderUri
+                    isBestseller
+                    isDigital
+                    categories
+                    title
+                    ingress
+                    starRating
+                    reviews
+                    likes
+                    likesInPercent
+                    hours
+                    authors {
+                        name
+                        authorImage
+                    }
+                    prices {
+                        currency
+                        price
+                        discount
+                    }
+                    content {
+                        description
+                        includes
+                        programDetails {
+                            id
+                            title
+                            description
+                        }
+                    }
+                }
+            }",
+                Variables = new { input = courseCreateRequest }
+            };
+        Console.WriteLine("Sending mutation: " + mutation.Query);
+        Console.WriteLine("Variables: " + JsonSerializer.Serialize(mutation.Variables));
+
+       
+        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        var responseContent = await response.Content.ReadAsStringAsync();
+        Console.WriteLine("Response status code: " + response.StatusCode);
+        Console.WriteLine("Response content: " + responseContent);
+
+        if (response.IsSuccessStatusCode)
+        {
+            
+            courseCreateRequest = new CourseCreateRequest();
+            ErrorMessage = null;
+        }
+        else
+        {
+            ErrorMessage = "Failed to add course. Please try again later.";
+        }
     }
 
-    private void HandleFileChange(InputFileChangeEventArgs e)
+    public class CourseCreateRequest
     {
-        var imageFile = e.File;
-        // Implement your file handling logic here
+        public string? ImageUri { get; set; }
+        public string? ImageHeaderUri { get; set; }
+        public bool IsBestseller { get; set; }
+        public bool IsDigital { get; set; }
+        public List<string>? Categories { get; set; } 
+        public string? Title { get; set; }
+        public string? Ingress { get; set; }
+        public decimal StarRating { get; set; }
+        public string? Reviews { get; set; }
+        public string? Likes { get; set; }
+        public string? LikesInPercent { get; set; } 
+        public string? Hours { get; set; }
+
+        public virtual PricesCreateRequest Prices { get; set; } = new PricesCreateRequest();
+        public virtual ContentCreateRequest Content { get; set; } = new ContentCreateRequest();
+        public virtual List<AuthorCreateRequest> Authors { get; set; } = new List<AuthorCreateRequest>();
+
+        public class PricesCreateRequest
+        {
+            public string? Currency { get; set; }
+            public decimal Price { get; set; }
+            public decimal Discount { get; set; }
+        }
+
+        public class ContentCreateRequest
+        {
+            public string? Description { get; set; }
+            public string? Includes { get; set; }
+            public virtual List<ProgramDetailItemCreateRequest> ProgramDetails { get; set; } = new List<ProgramDetailItemCreateRequest>();
+        }
+
+        public class ProgramDetailItemCreateRequest
+        {
+            public string? Title { get; set; }
+            public string? Description { get; set; }
+        }
+
+        public class AuthorCreateRequest
+        {
+            public string? Name { get; set; }
+            public string? AuthorImage { get; set; }
+        }
     }
 
-    private void HandleAuthorImageChange(InputFileChangeEventArgs e)
-    {
-        var imageFile = e.File;
-        // Implement your file handling logic here
-    }
-    private void UpdateAuthors(List<CourseCreateRequest.AuthorCreateRequest> authors)
-    {
-        courseCreateRequest.Authors = authors;
-    }
-    string includesAsString
-    {
-        get => string.Join(", ", courseCreateRequest.Content.Includes ?? new string[0]);
-        set => courseCreateRequest.Content.Includes = value.Split(',').Select(s => s.Trim()).ToArray();
-    }
+    
 }
-} *@

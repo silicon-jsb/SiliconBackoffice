@@ -1,8 +1,11 @@
 ﻿@page "/courses/view-courses"
+@rendermode InteractiveServer
 @using NewBackoffice.Data.GraphQL
 @inject HttpClient HttpClient
+@attribute [StreamRendering]
 
 
+<PageTitle>All courses</PageTitle>
 <h3>All courses</h3>
 
 
@@ -17,10 +20,10 @@ else
             <tr>
                 <th>ID</th>
                 <th>Title</th>
-                <th>isBestSeller</th>
-                <th>isDigital</th>
-                <th>categories</th>
-                <th>ingress</th>
+                <th>BestSeller</th>
+                <th>Digital</th>
+                <th>Categories</th>
+                <th>Ingress</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -34,7 +37,7 @@ else
                     <td>@course.IsDigital</td>
                     <td>@course.Categories</td>
                     <td>@course.Ingress</td>
-                    <td><button @onclick="() => DeleteCourse(course.Id)">Delete</button></td>
+                    <td><button class="btn btn-danger" @onclick="() => DeleteCourse(course.Id)">Delete</button></td>
 
                 </tr>
             }
@@ -54,10 +57,12 @@ else
 
     private string? ErrorMessage { get; set; }
 
-    
-
+   
     protected override async Task OnInitializedAsync()
-          
+    {
+        await LoadCourses();
+    }
+    public async Task LoadCourses()
     {
         var query = new GraphQLQuery
             {
@@ -102,78 +107,109 @@ else
         var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", query);
         if (response.IsSuccessStatusCode)
         {
-            var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();
-            courses = result?.Data.GetProperty("getCourses").EnumerateArray()
-                .Select(course => new Course
-                    {
-                        Id = course.GetProperty("id").GetString(),
-                        ImageUri = course.GetProperty("imageUri").GetString(),
-                        ImageHeaderUri = course.GetProperty("imageHeaderUri").GetString(),
-                        IsBestseller = course.GetProperty("isBestseller").GetBoolean(),
-                        IsDigital = course.GetProperty("isDigital").GetBoolean(),
-                        Categories = course.GetProperty("categories").EnumerateArray().Select(x => x.GetString()).ToArray(),
-                        Title = course.GetProperty("title").GetString(),
-                        Ingress = course.GetProperty("ingress").GetString(),
-                        StarRating = course.GetProperty("starRating").GetDecimal(),
-                        Reviews = course.GetProperty("reviews").GetString(),
-                        Likes = course.GetProperty("likes").GetString(),
-                        LikesInPercent = course.GetProperty("likesInPercent").GetString(),
-                        Hours = course.GetProperty("hours").GetString(),
-                        Authors = course.GetProperty("authors").EnumerateArray().Select(a => new Author
-                        {
-                            Name = a.GetProperty("name").GetString(),
-                            AuthorImage = a.GetProperty("authorImage").GetString()
-                        }).ToList(),
-                        Prices = new Prices
-                        {
-                            Currency = course.GetProperty("prices").GetProperty("currency").GetString(),
-                            Price = course.GetProperty("prices").GetProperty("price").GetDecimal(),
-                            Discount = course.GetProperty("prices").GetProperty("discount").GetDecimal()
-                        },
-                        Content = new Content
-                        {
-                            Description = course.GetProperty("content").GetProperty("description").GetString(),
-                            Includes = course.GetProperty("content").GetProperty("includes").EnumerateArray().Select(x => x.GetString()).ToArray(),
-                            ProgramDetails = course.GetProperty("content").GetProperty("programDetails").EnumerateArray().Select(pd => new ProgramDetailItem
-                            {
-                                Id = pd.GetProperty("id").GetInt32(),
-                                Title = pd.GetProperty("title").GetString(),
-                                Description = pd.GetProperty("description").GetString()
-                            }).ToList()
-                        }
-                    })
-            .ToList();
+            var result = await response.Content.ReadFromJsonAsync<CourseResponse>();
+            courses = result?.Data.GetCourses;
+            //     .Select(course => new Course
+            //         {
+            //             Id = course.GetProperty("id").GetString(),
+            //             ImageUri = course.GetProperty("imageUri").GetString(),
+            //             ImageHeaderUri = course.GetProperty("imageHeaderUri").GetString(),
+            //             IsBestseller = course.GetProperty("isBestseller").GetBoolean(),
+            //             IsDigital = course.GetProperty("isDigital").GetBoolean(),
+            //             Categories = course.GetProperty("categories").EnumerateArray().Select(x => x.GetString()).ToArray(),
+            //             Title = course.GetProperty("title").GetString(),
+            //             Ingress = course.GetProperty("ingress").GetString(),
+            //             StarRating = course.GetProperty("starRating").GetDecimal(),
+            //             Reviews = course.GetProperty("reviews").GetString(),
+            //             Likes = course.GetProperty("likes").GetString(),
+            //             LikesInPercent = course.GetProperty("likesInPercent").GetString(),
+            //             Hours = course.GetProperty("hours").GetString(),
+            //             Authors = course.GetProperty("authors").EnumerateArray().Select(a => new Author
+            //             {
+            //                 Name = a.GetProperty("name").GetString(),
+            //                 AuthorImage = a.GetProperty("authorImage").GetString()
+            //             }).ToList(),
+            //             Prices = new Prices
+            //             {
+            //                 Currency = course.GetProperty("prices").GetProperty("currency").GetString(),
+            //                 Price = course.GetProperty("prices").GetProperty("price").GetDecimal(),
+            //                 Discount = course.GetProperty("prices").GetProperty("discount").GetDecimal()
+            //             },
+            //             Content = new Content
+            //             {
+            //                 Description = course.GetProperty("content").GetProperty("description").GetString(),
+            //                 Includes = course.GetProperty("content").GetProperty("includes").EnumerateArray().Select(x => x.GetString()).ToArray(),
+            //                 ProgramDetails = course.GetProperty("content").GetProperty("programDetails").EnumerateArray().Select(pd => new ProgramDetailItem
+            //                 {
+            //                     Id = pd.GetProperty("id").GetInt32(),
+            //                     Title = pd.GetProperty("title").GetString(),
+            //                     Description = pd.GetProperty("description").GetString()
+            //                 }).ToList()
+            //             }
+            //         })
+            // .ToList();
         }
         else
         {
             ErrorMessage = "Failed to fetch courses. Please try again later.";
         }
     }
+    public class CourseResponse
+    {
+        public Data Data { get; set; }
+    }
 
-    private async Task DeleteCourse(string id)
+    public class Data
+    {
+        public List<Course> GetCourses { get; set; }
+    }
+    public class DeleteCourseResponse
+    {
+        public DeleteCourseData Data { get; set; }
+    }
+
+    public class DeleteCourseData
+    {
+        public bool DeleteCourse { get; set; }
+    }
+    // private void OnDeleteButtonClick(string id)
+    // {
+    //     Console.WriteLine("Button clicked");
+    //     DeleteCourse(id);
+    // }
+
+
+    public async Task DeleteCourse(string courseId)
     {
         var mutation = new GraphQLQuery
             {
                 Query = @"
-        mutation DeleteCourse($id: ID!) {
-            deleteCourse(id: $id) {
-                id
-            }
-        }",
-                Variables = new { id = id }
+            mutation DeleteCourse($id: String!) {
+                deleteCourse(id: $id)
+            }",
+                Variables = new { id = courseId }
             };
 
         var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
         if (response.IsSuccessStatusCode)
         {
-            // If the deletion was successful, remove the course from the local list
-            courses = courses.Where(course => course.Id != id).ToList();
+            var result = await response.Content.ReadFromJsonAsync<DeleteCourseResponse>();
+            if (result?.Data.DeleteCourse == true)
+            {
+                courses = courses.Where(course => course.Id != courseId).ToList();
+            }
+            else
+            {
+                ErrorMessage = "Failed to delete course. Please try again later.";
+            }
         }
         else
         {
             ErrorMessage = "Failed to delete course. Please try again later.";
         }
     }
+
+   
 
     public class Course
     {
