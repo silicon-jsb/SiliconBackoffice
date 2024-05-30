@@ -32,13 +32,13 @@
         <InputText id="imageHeaderUri" @bind-Value="courseUpdateRequest.ImageHeaderUri" />
     </div>
 
-    <div class="input-group">
-        <label for="isBestseller">Is a Bestseller: </label>
+    <div class="input-group checkbox-group">
+        <label for="isBestseller">Is a bestseller: </label>
         <InputCheckbox id="isBestseller" @bind-Value="courseUpdateRequest.IsBestseller" />
     </div>
 
-    <div class="input-group">
-        <label for="isDigital">Is Digital: </label>
+    <div class="input-group checkbox-group">
+        <label for="isDigital">Is digital: </label>
         <InputCheckbox id="isDigital" @bind-Value="courseUpdateRequest.IsDigital" />
     </div>
 
@@ -175,7 +175,7 @@
                 Variables = new { id = CourseId }
             };
 
-        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", query);
+        var response = await HttpClient.PostAsJsonAsync("https://courseprovider-silicon-jsb.azurewebsites.net/api/graphql?code=bgc2kUlGZk1Gvgj-j-Vsqb-KCjENeXD6H2b9-_4o5WkAAzFuW9ySgA%3D%3D", query);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();
@@ -247,7 +247,7 @@
                 Variables = new { input = courseUpdateRequest }
             };
 
-        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        var response = await HttpClient.PostAsJsonAsync("https://courseprovider-silicon-jsb.azurewebsites.net/api/graphql?code=bgc2kUlGZk1Gvgj-j-Vsqb-KCjENeXD6H2b9-_4o5WkAAzFuW9ySgA%3D%3D", mutation);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();

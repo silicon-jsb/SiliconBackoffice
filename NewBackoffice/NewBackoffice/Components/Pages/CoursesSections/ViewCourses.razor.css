@@ -6,13 +6,15 @@
     font-size: 16px;
     background-color: var(--gray-000);
 }
-
+.course-image {
+    width: 100px;
+    height: auto;
+}
 .btn-theme {
     border-radius: 6px;
     text-align: center;
     font-size: 14px;
-    padding: 8px 28px;
-    margin-top: 10px;
+    padding: 8px 26px;
     display: flex;
     justify-content: center;
     align-items: center;

@@ -110,7 +110,9 @@
         <InputText id="includes" @bind-Value="courseCreateRequest.Content.Includes" />
     </div>
 
-    @foreach (var detail in courseCreateRequest.Content.ProgramDetails)
+
+
+   @foreach (var detail in courseCreateRequest.Content.ProgramDetails)
     {
         <div class="input-group">
             <label for="programDetailTitle">Program Detail Title: </label>
@@ -121,7 +123,7 @@
             <label for="programDetailDescription">Program Detail Description: </label>
             <InputTextArea @bind-Value="detail.Description" />
         </div>
-    }
+    } 
 
     <button type="submit" class="btn btn-theme">Add Course</button>
 </EditForm>

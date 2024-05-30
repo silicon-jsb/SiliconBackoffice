@@ -20,12 +20,16 @@ else
     <table class="table">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>ID</th>               
                 <th>Title</th>
-                <th>BestSeller</th>
+                <th>Author</th>
+                <th>Besteller</th>
                 <th>Digital</th>
                 <th>Categories</th>
-                <th>Ingress</th>
+                <th>Ingress</th>               
+                <th>Includes</th>
+                <th>Price</th>
+                <th>Discount</th>
                 <th>Action</th>
             </tr>
         </thead>
@@ -33,12 +37,17 @@ else
             @foreach (var course in courses)
             {
                 <tr>
-                    <td>@course.Id</td>
+                    <td>@course.Id</td>               
                     <td>@course.Title</td>
+                    <td>@string.Join(", ", course.Authors?.Select(a => a.Name))</td>
                     <td>@course.IsBestseller</td>
                     <td>@course.IsDigital</td>
-                    <td>@course.Categories</td>
-                    <td>@course.Ingress</td>
+                    <td>@string.Join(", ", course.Categories)</td>
+                    <td>@course.Ingress</td>                   
+                    <td>@string.Join(", ", course.Content?.Includes)</td>
+                    <td>@course.Prices?.Price.ToString("F2")</td>
+                    <td>@course.Prices?.Discount.ToString("F2")</td>
+
                     <td>                        
                         <button class="btn btn-theme" @onclick="() => NavigateToUpdateCourse(course.Id)">Update</button>
                         <button class="btn btn-danger" @onclick="() => DeleteCourse(course.Id)">Delete</button>
