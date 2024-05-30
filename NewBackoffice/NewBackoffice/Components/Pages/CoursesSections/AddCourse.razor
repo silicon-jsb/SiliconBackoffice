@@ -8,6 +8,7 @@
 
 <h3>Add Course</h3>
 
+
 <EditForm Model="@courseCreateRequest" OnValidSubmit="SubmitForm" FormName="addCourseForm">
     <DataAnnotationsValidator />
     <ValidationSummary />
@@ -32,18 +33,19 @@
         <InputText id="imageHeaderUri" @bind-Value="courseCreateRequest.ImageHeaderUri" />
     </div>
 
-    <div class="input-group">
-        <label for="isBestseller">Is Bestseller: </label>
+    <div class="input-group checkbox-group">
+        <label for="isBestseller">Is a bestseller: </label>
         <InputCheckbox id="isBestseller" @bind-Value="courseCreateRequest.IsBestseller" />
     </div>
 
-    <div class="input-group">
-        <label for="isDigital">Is Digital: </label>
+    <div class="input-group checkbox-group">
+        <label for="isDigital">Is digital: </label>
         <InputCheckbox id="isDigital" @bind-Value="courseCreateRequest.IsDigital" />
     </div>
 
+
     <div class="input-group">
-        <label for="categories">Categories: </label>
+        <label for="categories">Categories (separate categories with ","): </label>
         <InputTextArea id="categories" @bind-Value="categoriesString" />
     </div>
 
@@ -73,7 +75,7 @@
     </div>
 
     <div class="input-group">
-        <label for="name">Author Names: </label>
+        <label for="name">Author/s (separate authors with ","): </label>
         <InputTextArea id="name" @bind-Value="authorsString" />
     </div>
     <div class="input-group">
@@ -121,8 +123,9 @@
         </div>
     }
 
-    <button type="submit">Add Course</button>
+    <button type="submit" class="btn btn-theme">Add Course</button>
 </EditForm>
+
 
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
@@ -191,7 +194,7 @@
         Console.WriteLine("Variables: " + JsonSerializer.Serialize(mutation.Variables));
 
        
-        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        var response = await HttpClient.PostAsJsonAsync("https://courseprovider-silicon-jsb.azurewebsites.net/api/graphql?code=bgc2kUlGZk1Gvgj-j-Vsqb-KCjENeXD6H2b9-_4o5WkAAzFuW9ySgA%3D%3D", mutation);
         var responseContent = await response.Content.ReadAsStringAsync();
         Console.WriteLine("Response status code: " + response.StatusCode);
         Console.WriteLine("Response content: " + responseContent);

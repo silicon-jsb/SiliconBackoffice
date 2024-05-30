@@ -4,7 +4,7 @@
 
 
 .courses-nav {
-    /* Style the navigation menu */
+    
     background-color: var(--gray-100);
     padding: 1em;
     margin-bottom: 1em;
@@ -12,7 +12,7 @@
 }
 
     .courses-nav .nav-link {
-        /* Style the navigation links */
+        
         color: var(--gray-700);
         text-decoration: none;
         margin-right: 1em;
@@ -22,7 +22,7 @@
     }
 
         .courses-nav .nav-link.active {
-            /* Style the active navigation link */
+           
             color: var(--theme);
             text-decoration: none;
         }

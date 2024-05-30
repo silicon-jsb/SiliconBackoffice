@@ -1,4 +1,4 @@
-﻿@page "/courses/add-course"
+﻿@* @page "/courses/add-course"
 @using Newtonsoft.Json
 @using SiliconBackoffice.Handlers
 @inject ServiceBusHandler ServiceBusHandler
@@ -145,3 +145,4 @@
         set => courseCreateRequest.Content.Includes = value.Split(',').Select(s => s.Trim()).ToArray();
     }
 }
+ *@

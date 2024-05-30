@@ -1,7 +1,353 @@
-﻿@page "/courses/update-course"
+﻿@page "/courses/update-course/{CourseId}"
+@rendermode InteractiveServer
+@inject HttpClient HttpClient
+@using NewBackoffice.Data.GraphQL
+@using System.Text.Json
+@attribute [StreamRendering]
 
+<PageTitle>Update course</PageTitle>
 <h3>Edit course</h3>
 
-@code {
+<EditForm Model="@courseUpdateRequest" OnValidSubmit="SubmitForm">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
 
+    <div class="input-group">
+        <label for="title">Title: </label>
+        <InputText id="title" @bind-Value="courseUpdateRequest.Title" />
+    </div>
+
+    <div class="input-group">
+        <label for="ingress">Ingress: </label>
+        <InputTextArea id="ingress" @bind-Value="courseUpdateRequest.Ingress" />
+    </div>
+
+    <div class="input-group">
+        <label for="imageUri">Image URI: </label>
+        <InputText id="imageUri" @bind-Value="courseUpdateRequest.ImageUri" />
+    </div>
+
+    <div class="input-group">
+        <label for="imageHeaderUri">Image Header URI: </label>
+        <InputText id="imageHeaderUri" @bind-Value="courseUpdateRequest.ImageHeaderUri" />
+    </div>
+
+    <div class="input-group">
+        <label for="isBestseller">Is a Bestseller: </label>
+        <InputCheckbox id="isBestseller" @bind-Value="courseUpdateRequest.IsBestseller" />
+    </div>
+
+    <div class="input-group">
+        <label for="isDigital">Is Digital: </label>
+        <InputCheckbox id="isDigital" @bind-Value="courseUpdateRequest.IsDigital" />
+    </div>
+
+    <div class="input-group">
+        <label for="categories">Categories(separate categories with ","): </label>
+        <InputTextArea id="categories" @bind-Value="CategoriesString" />
+    </div>
+
+    <div class="input-group">
+        <label for="starRating">Star Rating: </label>
+        <InputNumber id="starRating" @bind-Value="courseUpdateRequest.StarRating" />
+    </div>
+
+    <div class="input-group">
+        <label for="reviews">Reviews: </label>
+        <InputTextArea id="reviews" @bind-Value="courseUpdateRequest.Reviews" />
+    </div>
+
+    <div class="input-group">
+        <label for="likes">Likes: </label>
+        <InputText id="likes" @bind-Value="courseUpdateRequest.Likes" />
+    </div>
+
+    <div class="input-group">
+        <label for="likesInPercent">Likes in Percent: </label>
+        <InputText id="likesInPercent" @bind-Value="courseUpdateRequest.LikesInPercent" />
+    </div>
+
+    <div class="input-group">
+        <label for="hours">Hours: </label>
+        <InputText id="hours" @bind-Value="courseUpdateRequest.Hours" />
+    </div>
+
+    <div class="input-group">
+        <label for="name">Author/s (separate authors with ","): </label>
+        <InputTextArea id="name" @bind-Value="AuthorsString" />
+    </div>
+
+    <div class="input-group">
+        <label for="authorImages">Author Images: </label>
+        <InputTextArea id="authorImages" @bind-Value="AuthorImagesString" />
+    </div>
+
+    <h4>Prices</h4>
+    <div class="input-group">
+        <label for="currency">Currency: </label>
+        <InputText id="currency" @bind-Value="courseUpdateRequest.Prices.Currency" />
+    </div>
+
+    <div class="input-group">
+        <label for="price">Price: </label>
+        <InputNumber id="price" @bind-Value="courseUpdateRequest.Prices.Price" />
+    </div>
+
+    <div class="input-group">
+        <label for="discount">Discount: </label>
+        <InputNumber id="discount" @bind-Value="courseUpdateRequest.Prices.Discount" />
+    </div>
+
+    <h4>Content</h4>
+    <div class="input-group">
+        <label for="description">Description: </label>
+        <InputTextArea id="description" @bind-Value="courseUpdateRequest.Content.Description" />
+    </div>
+
+
+    <div class="input-group">
+        <label for="includes">Includes: </label>
+        <InputText id="includes" @bind-Value="IncludesString" />
+    </div>
+
+    <button type="submit" class="btn btn-theme">Update Course</button>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public string CourseId { get; set; } = null!;
+
+    private CourseUpdateRequest courseUpdateRequest = new CourseUpdateRequest();
+    private string categoriesString = string.Empty;
+    private string authorsString = string.Empty;
+    private string authorImagesString = string.Empty;
+    private string includesString = string.Empty;
+
+    private string? ErrorMessage { get; set; }
+    private string? SuccessMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCourse();
+    }
+
+    public async Task LoadCourse()
+    {
+        var query = new GraphQLQuery
+            {
+                Query = @"
+             query GetCourseById($id: String!) {
+                getCourseById(id: $id) {
+                    id
+                    title
+                    imageUri
+                    imageHeaderUri
+                    isBestseller
+                    isDigital
+                    categories
+                    ingress
+                    starRating
+                    reviews
+                    likes
+                    likesInPercent
+                    hours
+                    authors {
+                        name
+                        authorImage
+                    }
+                    prices {
+                        currency
+                        price
+                        discount
+                    }
+                    content {
+                        description
+                        includes
+                        programDetails {
+                            id
+                            title
+                            description
+                        }
+                    }
+                }
+            }",
+                Variables = new { id = CourseId }
+            };
+
+        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", query);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();
+            var courseElement = result?.Data.GetProperty("getCourseById");
+            if (courseElement != null)
+            {
+                var course = JsonSerializer.Deserialize<CourseUpdateRequest>(courseElement?.ToString() ?? string.Empty);
+                if (course != null)
+                {
+                    courseUpdateRequest = course;
+                    categoriesString = string.Join(", ", course.Categories ?? Enumerable.Empty<string>());
+                    authorsString = string.Join(", ", course.Authors.Select(a => a.Name));
+                    authorImagesString = string.Join(", ", course.Authors.Select(a => a.AuthorImage));
+                    includesString = string.Join(", ", course.Content.Includes ?? new string[0]);
+                }
+            }
+            else
+            {
+                ErrorMessage = "Course not found.";
+            }
+        }
+        else
+        {
+            ErrorMessage = "Failed to load course details. Please try again later.";
+        }
+    }
+
+    public async Task SubmitForm()
+    {
+
+        var mutation = new GraphQLQuery
+            {
+                Query = @"
+            mutation UpdateCourse($input: CourseUpdateRequestInput!) {
+                updateCourse(input: $input) {
+                    id
+                    title
+                    imageUri
+                    imageHeaderUri
+                    isBestseller
+                    isDigital
+                    categories
+                    ingress
+                    starRating
+                    reviews
+                    likes
+                    likesInPercent
+                    hours
+                    authors {
+                        name
+                        authorImage
+                    }
+                    prices {
+                        currency
+                        price
+                        discount
+                    }
+                    content {
+                        description
+                        includes
+                        programDetails {
+                            id
+                            title
+                            description
+                        }
+                    }
+                }
+            }",
+                Variables = new { input = courseUpdateRequest }
+            };
+
+        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        if (response.IsSuccessStatusCode)
+        {
+            var result = await response.Content.ReadFromJsonAsync<DynamicGraphQLResponse>();
+            var updateCourseElement = result?.Data.GetProperty("updateCourse");
+            if (updateCourseElement != null)
+            {
+                var updatedCourse = JsonSerializer.Deserialize<CourseUpdateRequest>(updateCourseElement?.ToString() ?? string.Empty);
+                if (updatedCourse != null)
+                {
+                    SuccessMessage = "Course updated successfully!";
+                }
+                else
+                {
+                    ErrorMessage = "Failed to update course. Please try again later.";
+                }
+            }
+        
+            else
+            {
+                ErrorMessage = "Failed to update course. Please try again later.";
+            }
+        }
+      
+    }
+    public string CategoriesString
+    {
+        get => string.Join(", ", courseUpdateRequest.Categories ?? Enumerable.Empty<string>());
+        set => courseUpdateRequest.Categories = value.Split(',').Select(c => c.Trim()).ToList();
+    }
+
+    public string AuthorsString
+    {
+        get => string.Join(", ", courseUpdateRequest.Authors.Select(a => a.Name));
+        set => courseUpdateRequest.Authors = value.Split(',').Select(a => new CourseUpdateRequest.AuthorUpdateRequest { Name = a.Trim() }).ToList();
+    }
+
+    public string AuthorImagesString
+    {
+        get => string.Join(", ", courseUpdateRequest.Authors.Select(a => a.AuthorImage));
+        set
+        {
+            var images = value.Split(',');
+            for (int i = 0; i < courseUpdateRequest.Authors.Count; i++)
+            {
+                courseUpdateRequest.Authors[i].AuthorImage = images[i].Trim();
+            }
+        }
+    }
+
+    public string IncludesString
+    {
+        get => string.Join(", ", courseUpdateRequest.Content.Includes ?? new string[0]);
+        set => courseUpdateRequest.Content.Includes = value.Split(',').Select(i => i.Trim()).ToArray();
+    }
+
+
+    public class CourseUpdateRequest
+    {
+        public string Id { get; set; } = null!;
+        public string? ImageUri { get; set; }
+        public string? ImageHeaderUri { get; set; }
+        public bool IsBestseller { get; set; }
+        public bool IsDigital { get; set; }
+        public List<string>? Categories { get; set; }
+        public string? Title { get; set; }
+        public string? Ingress { get; set; }
+        public decimal StarRating { get; set; }
+        public string? Reviews { get; set; }
+        public string? Likes { get; set; }
+        public string? LikesInPercent { get; set; }
+        public string? Hours { get; set; }
+
+        public virtual PricesUpdateRequest Prices { get; set; } = new PricesUpdateRequest();
+        public virtual ContentUpdateRequest Content { get; set; } = new ContentUpdateRequest();
+        public virtual List<CourseUpdateRequest.AuthorUpdateRequest> Authors { get; set; } = new List<CourseUpdateRequest.AuthorUpdateRequest>();
+
+        public class PricesUpdateRequest
+        {
+            public string? Currency { get; set; }
+            public decimal Price { get; set; }
+            public decimal Discount { get; set; }
+        }
+
+        public class ContentUpdateRequest
+        {
+            public string? Description { get; set; }
+            public string[]? Includes { get; set; }
+            public virtual List<ProgramDetailItemUpdateRequest> ProgramDetails { get; set; } = new List<ProgramDetailItemUpdateRequest>();
+        }
+
+        public class ProgramDetailItemUpdateRequest
+        {
+            public string? Title { get; set; }
+            public string? Description { get; set; }
+        }
+
+        public class AuthorUpdateRequest
+        {
+            public string? Name { get; set; }
+            public string? AuthorImage { get; set; }
+        }
+    }
 }

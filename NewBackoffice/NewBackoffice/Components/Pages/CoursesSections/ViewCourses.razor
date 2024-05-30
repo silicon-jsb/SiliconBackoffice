@@ -1,11 +1,13 @@
 ﻿@page "/courses/view-courses"
 @rendermode InteractiveServer
 @using NewBackoffice.Data.GraphQL
+@inject NavigationManager NavigationManager
 @inject HttpClient HttpClient
 @attribute [StreamRendering]
 
 
 <PageTitle>All courses</PageTitle>
+
 <h3>All courses</h3>
 
 
@@ -37,8 +39,10 @@ else
                     <td>@course.IsDigital</td>
                     <td>@course.Categories</td>
                     <td>@course.Ingress</td>
-                    <td><button class="btn btn-danger" @onclick="() => DeleteCourse(course.Id)">Delete</button></td>
-
+                    <td>                        
+                        <button class="btn btn-theme" @onclick="() => NavigateToUpdateCourse(course.Id)">Update</button>
+                        <button class="btn btn-danger" @onclick="() => DeleteCourse(course.Id)">Delete</button>
+                    </td>
                 </tr>
             }
         </tbody>
@@ -104,56 +108,21 @@ else
         }"
             };
 
-        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", query);
+        var response = await HttpClient.PostAsJsonAsync("https://courseprovider-silicon-jsb.azurewebsites.net/api/graphql?code=bgc2kUlGZk1Gvgj-j-Vsqb-KCjENeXD6H2b9-_4o5WkAAzFuW9ySgA%3D%3D", query);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<CourseResponse>();
             courses = result?.Data.GetCourses;
-            //     .Select(course => new Course
-            //         {
-            //             Id = course.GetProperty("id").GetString(),
-            //             ImageUri = course.GetProperty("imageUri").GetString(),
-            //             ImageHeaderUri = course.GetProperty("imageHeaderUri").GetString(),
-            //             IsBestseller = course.GetProperty("isBestseller").GetBoolean(),
-            //             IsDigital = course.GetProperty("isDigital").GetBoolean(),
-            //             Categories = course.GetProperty("categories").EnumerateArray().Select(x => x.GetString()).ToArray(),
-            //             Title = course.GetProperty("title").GetString(),
-            //             Ingress = course.GetProperty("ingress").GetString(),
-            //             StarRating = course.GetProperty("starRating").GetDecimal(),
-            //             Reviews = course.GetProperty("reviews").GetString(),
-            //             Likes = course.GetProperty("likes").GetString(),
-            //             LikesInPercent = course.GetProperty("likesInPercent").GetString(),
-            //             Hours = course.GetProperty("hours").GetString(),
-            //             Authors = course.GetProperty("authors").EnumerateArray().Select(a => new Author
-            //             {
-            //                 Name = a.GetProperty("name").GetString(),
-            //                 AuthorImage = a.GetProperty("authorImage").GetString()
-            //             }).ToList(),
-            //             Prices = new Prices
-            //             {
-            //                 Currency = course.GetProperty("prices").GetProperty("currency").GetString(),
-            //                 Price = course.GetProperty("prices").GetProperty("price").GetDecimal(),
-            //                 Discount = course.GetProperty("prices").GetProperty("discount").GetDecimal()
-            //             },
-            //             Content = new Content
-            //             {
-            //                 Description = course.GetProperty("content").GetProperty("description").GetString(),
-            //                 Includes = course.GetProperty("content").GetProperty("includes").EnumerateArray().Select(x => x.GetString()).ToArray(),
-            //                 ProgramDetails = course.GetProperty("content").GetProperty("programDetails").EnumerateArray().Select(pd => new ProgramDetailItem
-            //                 {
-            //                     Id = pd.GetProperty("id").GetInt32(),
-            //                     Title = pd.GetProperty("title").GetString(),
-            //                     Description = pd.GetProperty("description").GetString()
-            //                 }).ToList()
-            //             }
-            //         })
-            // .ToList();
+        
+          
         }
         else
         {
             ErrorMessage = "Failed to fetch courses. Please try again later.";
         }
     }
+   
+
     public class CourseResponse
     {
         public Data Data { get; set; }
@@ -172,11 +141,7 @@ else
     {
         public bool DeleteCourse { get; set; }
     }
-    // private void OnDeleteButtonClick(string id)
-    // {
-    //     Console.WriteLine("Button clicked");
-    //     DeleteCourse(id);
-    // }
+  
 
 
     public async Task DeleteCourse(string courseId)
@@ -190,7 +155,7 @@ else
                 Variables = new { id = courseId }
             };
 
-        var response = await HttpClient.PostAsJsonAsync("http://localhost:7022/api/graphql", mutation);
+        var response = await HttpClient.PostAsJsonAsync("https://courseprovider-silicon-jsb.azurewebsites.net/api/graphql?code=bgc2kUlGZk1Gvgj-j-Vsqb-KCjENeXD6H2b9-_4o5WkAAzFuW9ySgA%3D%3D", mutation);
         if (response.IsSuccessStatusCode)
         {
             var result = await response.Content.ReadFromJsonAsync<DeleteCourseResponse>();
@@ -208,6 +173,11 @@ else
             ErrorMessage = "Failed to delete course. Please try again later.";
         }
     }
+    public void NavigateToUpdateCourse(string courseId)
+    {
+        NavigationManager.NavigateTo($"/courses/update-course/{courseId}");
+    }
+
 
    
 
